@@ -2,6 +2,7 @@
 package debug
 
 import (
+	"expvar"
 	"net/http"
 	"net/http/pprof"
 
@@ -20,11 +21,9 @@ func Mux() *http.ServeMux {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	mux.Handle("/debug/vars/", expvar.Handler())
 
-	//if encore.Meta().Environment.Type == encore.EnvDevelopment {
-	//mux.Handle("/debug/vars/", expvar.Handler())
 	statsviz.Register(mux)
-	//}
 
 	return mux
 }

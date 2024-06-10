@@ -54,8 +54,17 @@ down-app:
 
 down: down-app down-daemon
 
+pprof:
+	open -a "Google Chrome" http://127.0.0.1:4000/debug/pprof
+
+pprof-stg:
+	open -a "Google Chrome" https://staging-class0624-8652.encr.app/debug/pprof
+
 statsviz:
 	open -a "Google Chrome" http://127.0.0.1:4000/debug/statsviz
+
+statsviz-stg:
+	open -a "Google Chrome" https://staging-class0624-8652.encr.app/debug/statsviz/
 
 # ==============================================================================
 # Modules support
