@@ -10,7 +10,7 @@ type token struct {
 //encore:api method=GET path=/token/:kid
 func Token(ctx context.Context, kid string) (token, error) {
 	t := token{
-		Value: kid,
+		Value: kid + "-1",
 	}
 
 	return t, nil
