@@ -3,8 +3,12 @@ package auth
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"runtime"
 
+	"encore.dev"
+	"github.com/ardanlabs/conf/v3"
 	"github.com/ardanlabs/encore/foundation/logger"
 )
 
@@ -55,6 +59,39 @@ func startup(log *logger.Logger) error {
 	// GOMAXPROCS
 
 	log.Info(ctx, "initService", "GOMAXPROCS", runtime.GOMAXPROCS(0))
+
+	// -------------------------------------------------------------------------
+	// Configuration
+
+	cfg := struct {
+		conf.Version
+	}{
+		Version: conf.Version{
+			Build: encore.Meta().Environment.Name,
+			Desc:  "Sales",
+		},
+	}
+
+	const prefix = "SALES"
+	help, err := conf.Parse(prefix, &cfg)
+	if err != nil {
+		if errors.Is(err, conf.ErrHelpWanted) {
+			fmt.Println(help)
+			return err
+		}
+		return fmt.Errorf("parsing config: %w", err)
+	}
+
+	// -------------------------------------------------------------------------
+	// App Starting
+
+	log.Info(ctx, "initService", "environment", encore.Meta().Environment.Name)
+
+	out, err := conf.String(&cfg)
+	if err != nil {
+		return fmt.Errorf("generating config for output: %w", err)
+	}
+	log.Info(ctx, "initService", "config", out)
 
 	return nil
 }

@@ -14,6 +14,16 @@ tst:
 token-stg:
 	curl -il -X GET https://staging-class0624-8652.encr.app/token/MyKID
 
+tst-stg:
+	curl -il -X POST https://staging-class0624-8652.encr.app/test -d '{"status": "BILL"}'
+
+# ==============================================================================
+# Help Stuff
+# Q: How to pass values.
+
+help:
+	encore run -v --help
+
 # ==============================================================================
 # Manage Project
 
@@ -43,3 +53,26 @@ down-app:
     fi
 
 down: down-app down-daemon
+
+# ==============================================================================
+# Modules support
+
+deps-reset:
+	git checkout -- go.mod
+	go mod tidy
+
+tidy:
+	go mod tidy
+
+deps-list:
+	go list -m -u -mod=readonly all
+
+deps-upgrade:
+	go get -u -v ./...
+	go mod tidy
+
+deps-cleancache:
+	go clean -modcache
+
+list:
+	go list -mod=mod all
