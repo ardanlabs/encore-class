@@ -11,6 +11,7 @@ import (
 	"encore.dev"
 	"github.com/ardanlabs/conf/v3"
 	"github.com/ardanlabs/encore/app/sdk/debug"
+	"github.com/ardanlabs/encore/app/sdk/metrics"
 	"github.com/ardanlabs/encore/foundation/logger"
 )
 
@@ -20,6 +21,7 @@ import (
 type Service struct {
 	log   *logger.Logger
 	debug http.Handler
+	mtrcs *metrics.Values
 }
 
 // NewService is called to create a new encore Service.
@@ -27,6 +29,7 @@ func NewService(log *logger.Logger) (*Service, error) {
 	s := Service{
 		log:   log,
 		debug: debug.Mux(),
+		mtrcs: newMetrics(),
 	}
 
 	return &s, nil
