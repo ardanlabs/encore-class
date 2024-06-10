@@ -8,6 +8,9 @@ SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 token:
 	curl -il -X GET http://127.0.0.1:4000/token/MyKID
 
+tst:
+	curl -il -X POST http://127.0.0.1:4000/test -d '{"status": "BILL"}'
+
 token-stg:
 	curl -il -X GET https://staging-class0624-8652.encr.app/token/MyKID
 
