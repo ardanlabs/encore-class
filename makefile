@@ -7,3 +7,27 @@ SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 
 up:
 	encore run -v --browser never
+
+FIND_DAEMON = $(shell ps | grep 'encore daemon' | grep -v 'grep' | cut -c 1-5)
+SET_DAEMON = $(eval DAEMON_ID=$(FIND_DAEMON))
+
+FIND_APP = $(shell ps | grep 'encore_app_out' | grep -v 'grep' | cut -c 1-5)
+SET_APP = $(eval APP_ID=$(FIND_APP))
+
+down-daemon:
+	$(SET_DAEMON)
+	if [ -z "$(DAEMON_ID)" ]; then \
+		echo "daemon not running"; \
+    else \
+		kill -SIGTERM $(DAEMON_ID); \
+    fi
+
+down-app:
+	$(SET_APP)
+	if [ -z "$(APP_ID)" ]; then \
+		echo "app not running"; \
+    else \
+		kill -SIGTERM $(APP_ID); \
+    fi
+
+down: down-app down-daemon
