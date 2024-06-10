@@ -3,6 +3,12 @@ SHELL_PATH = /bin/ash
 SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 
 # ==============================================================================
+# CURL
+
+token:
+	curl -il -X GET http://127.0.0.1:4000/token/MyKID
+
+# ==============================================================================
 # Manage Project
 
 up:
