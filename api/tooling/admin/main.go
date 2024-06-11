@@ -21,10 +21,33 @@ func main() {
 
 // GenToken generates a JWT for the specified user.
 func GenToken() error {
+	fmt.Print("\n")
+
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
 		return fmt.Errorf("parsing private pem: %w", err)
 	}
+
+	// Marshal the public key from the private key to PKIX.
+	asn1Bytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return fmt.Errorf("marshaling public key: %w", err)
+	}
+
+	// Construct a PEM block for the public key.
+	publicBlock := pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: asn1Bytes,
+	}
+
+	// Write the public key to the public key file.
+	if err := pem.Encode(os.Stdout, &publicBlock); err != nil {
+		return fmt.Errorf("encoding to public file: %w", err)
+	}
+
+	fmt.Print("\n----------------------------------------------------\n\n")
+
+	// -------------------------------------------------------------------------
 
 	// Generating a token requires defining a set of claims. In this applications
 	// case, we only care about defining the subject and the user in question and
