@@ -9,6 +9,8 @@ import (
 
 	"encore.dev"
 	"github.com/ardanlabs/conf/v3"
+	"github.com/ardanlabs/encore/app/sdk/auth"
+	"github.com/ardanlabs/encore/foundation/keystore"
 	"github.com/ardanlabs/encore/foundation/logger"
 )
 
@@ -16,13 +18,15 @@ import (
 //
 //encore:service
 type Service struct {
-	log *logger.Logger
+	log  *logger.Logger
+	auth *auth.Auth
 }
 
 // NewService is called to create a new encore Service.
-func NewService(log *logger.Logger) (*Service, error) {
+func NewService(log *logger.Logger, ath *auth.Auth) (*Service, error) {
 	s := Service{
-		log: log,
+		log:  log,
+		auth: ath,
 	}
 
 	return &s, nil
@@ -45,14 +49,15 @@ func (s *Service) Shutdown(force context.Context) {
 func initService() (*Service, error) {
 	log := logger.New("auth")
 
-	if err := startup(log); err != nil {
+	auth, err := startup(log)
+	if err != nil {
 		return nil, err
 	}
 
-	return NewService(log)
+	return NewService(log, auth)
 }
 
-func startup(log *logger.Logger) error {
+func startup(log *logger.Logger) (*auth.Auth, error) {
 	ctx := context.Background()
 
 	// -------------------------------------------------------------------------
@@ -65,6 +70,10 @@ func startup(log *logger.Logger) error {
 
 	cfg := struct {
 		conf.Version
+		Auth struct {
+			ActiveKID string `conf:"default:54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"`
+			Issuer    string `conf:"default:service project"`
+		}
 	}{
 		Version: conf.Version{
 			Build: encore.Meta().Environment.Name,
@@ -72,14 +81,14 @@ func startup(log *logger.Logger) error {
 		},
 	}
 
-	const prefix = "SALES"
+	const prefix = "AUTH"
 	help, err := conf.Parse(prefix, &cfg)
 	if err != nil {
 		if errors.Is(err, conf.ErrHelpWanted) {
 			fmt.Println(help)
-			return err
+			return nil, err
 		}
-		return fmt.Errorf("parsing config: %w", err)
+		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
 	// -------------------------------------------------------------------------
@@ -89,9 +98,34 @@ func startup(log *logger.Logger) error {
 
 	out, err := conf.String(&cfg)
 	if err != nil {
-		return fmt.Errorf("generating config for output: %w", err)
+		return nil, fmt.Errorf("generating config for output: %w", err)
 	}
 	log.Info(ctx, "initService", "config", out)
 
-	return nil
+	// -------------------------------------------------------------------------
+	// Auth Support
+
+	log.Info(ctx, "initService", "status", "initializing authentication support")
+
+	// Load the private keys files from disk. We can assume some system like
+	// Vault has created these files already. How that happens is not our
+	// concern.
+
+	ks := keystore.New()
+	if err := ks.LoadKey(secrets.KeyID, secrets.KeyPEM); err != nil {
+		return nil, fmt.Errorf("reading keys: %w", err)
+	}
+
+	authCfg := auth.Config{
+		Log:       log,
+		KeyLookup: ks,
+		Issuer:    cfg.Auth.Issuer,
+	}
+
+	auth, err := auth.New(authCfg)
+	if err != nil {
+		return nil, fmt.Errorf("constructing auth: %w", err)
+	}
+
+	return auth, nil
 }
