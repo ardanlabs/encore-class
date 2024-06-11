@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"encore.dev/types/uuid"
 	"github.com/ardanlabs/encore/foundation/logger"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/rego"
 )
 

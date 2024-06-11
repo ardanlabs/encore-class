@@ -29,3 +29,13 @@ func (s *Service) AuthHandler(ctx context.Context, ap *authParams) (eauth.UID, *
 
 	return "", nil, errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action")
 }
+
+//lint:ignore U1000 "called by encore"
+//encore:api private method=POST path=/authorize
+func (s *Service) Authorize(ctx context.Context, authInfo mid.AuthInfo) error {
+	if err := s.auth.Authorize(ctx, authInfo.Claims, authInfo.UserID, authInfo.Rule); err != nil {
+		return errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action, claims[%v] rule[%v]: %s", authInfo.Claims.Roles, authInfo.Rule, err)
+	}
+
+	return nil
+}
