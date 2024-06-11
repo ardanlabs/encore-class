@@ -11,6 +11,12 @@ SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 # 	$ openssl rsa -pubout -in private.pem -out public.pem
 
 # ==============================================================================
+# Tooling
+
+admin:
+	go run api/tooling/admin/main.go
+
+# ==============================================================================
 # CURL
 
 token:
