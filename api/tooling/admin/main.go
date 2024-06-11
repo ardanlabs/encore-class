@@ -13,6 +13,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// https://play.openpolicyagent.org/p/o2QJlBxAEb
+
 func main() {
 	if err := GenToken(); err != nil {
 		log.Fatal(err)
@@ -84,6 +86,8 @@ func GenToken() error {
 	}
 
 	fmt.Println(str)
+
+	// -------------------------------------------------------------------------
 
 	return nil
 }
