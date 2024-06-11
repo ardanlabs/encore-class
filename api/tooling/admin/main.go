@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/open-policy-agent/opa/rego"
 )
 
 // https://play.openpolicyagent.org/p/o2QJlBxAEb
@@ -80,14 +83,48 @@ func GenToken() error {
 	token := jwt.NewWithClaims(method, claims)
 	token.Header["kid"] = "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"
 
-	str, err := token.SignedString(privateKey)
+	strToken, err := token.SignedString(privateKey)
 	if err != nil {
 		return fmt.Errorf("signing token: %w", err)
 	}
 
-	fmt.Println(str)
+	fmt.Println(strToken)
 
 	// -------------------------------------------------------------------------
+
+	ctx := context.TODO()
+
+	query := fmt.Sprintf("x = data.%s.%s", "ardan.rego", "auth")
+
+	q, err := rego.New(
+		rego.Query(query),
+		rego.Module("policy.rego", authenticateRego),
+	).PrepareForEval(ctx)
+	if err != nil {
+		return err
+	}
+
+	input := map[string]any{
+		"Key":   publicKey,
+		"Token": strToken,
+		"ISS":   "Encore Class Project",
+	}
+
+	results, err := q.Eval(ctx, rego.EvalInput(input))
+	if err != nil {
+		return fmt.Errorf("query: %w", err)
+	}
+
+	if len(results) == 0 {
+		return errors.New("no results")
+	}
+
+	result, ok := results[0].Bindings["x"].(bool)
+	if !ok || !result {
+		return fmt.Errorf("bindings results[%v] ok[%v]", results, ok)
+	}
+
+	fmt.Print("\nSIGNATURE VALIDATED\n\n")
 
 	return nil
 }
@@ -148,6 +185,32 @@ func GenKey() error {
 	fmt.Println("private and public key files generated")
 	return nil
 }
+
+var authenticateRego = `package ardan.rego
+
+import rego.v1
+
+default auth := false
+
+auth if {
+	[valid, _, _] := verify_jwt
+	valid = true
+}
+
+verify_jwt := io.jwt.decode_verify(input.Token, {
+	"cert": input.Key,
+	"iss": input.ISS,
+})`
+
+var publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvMAHb0IoLvoYuW2kA+LT
+mnk+hfnBq1eYIh4CT/rMPCxgtzjqU0guQOMnLg69ydyA5uu37v6rbS1+stuBTEiM
+Ql/bxAhgLkGrUhgpZ10Bt6GzSEgwQNloZoGaxe4p20wMPpT4kcMKNHkQds3uONNc
+LxPUmfjbbH64g+seg28pbgQPwKFKtF7bIsOBgz0g5Ptn5mrkdzqMPUSy9k9VCu+R
+42LH9c75JsRzz4FeN+VzwMAL6yQnZvOi7/zOgNyxeVia8XVKykrnhgcpiOn5oaLR
+BzQGN00Z7TuBRIfDJWU21qQN4Cq7keZmMP4gqCVWjYneK4bzrG/+H2w9BJ2TsmMG
+vwIDAQAB
+-----END PUBLIC KEY-----`
 
 var privateKey = `-----BEGIN PRIVATE KEY-----
 MIIEpQIBAAKCAQEAvMAHb0IoLvoYuW2kA+LTmnk+hfnBq1eYIh4CT/rMPCxgtzjq
