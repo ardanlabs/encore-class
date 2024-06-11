@@ -28,13 +28,13 @@ func (s *Service) Fallback(w http.ResponseWriter, r *http.Request) {
 // =============================================================================
 
 //lint:ignore U1000 "called by encore"
-//encore:api public method=POST path=/test tag:metrics
+//encore:api auth method=POST path=/test tag:metrics
 func (s *Service) Test(ctx context.Context, status testapp.Status) (testapp.Status, error) {
 	return testapp.Test(ctx, status)
 }
 
 //lint:ignore U1000 "called by encore"
-//encore:api public method=POST path=/testerror tag:metrics
+//encore:api auth method=POST path=/testerror tag:metrics
 func (s *Service) TestError(ctx context.Context, status testapp.Status) (testapp.Status, error) {
 	err := &errs.Error{
 		Code:    errs.FailedPrecondition,
@@ -45,7 +45,7 @@ func (s *Service) TestError(ctx context.Context, status testapp.Status) (testapp
 }
 
 //lint:ignore U1000 "called by encore"
-//encore:api public method=POST path=/testpanic tag:metrics
+//encore:api auth method=POST path=/testpanic tag:metrics
 func (s *Service) TestPanic(ctx context.Context, status testapp.Status) (testapp.Status, error) {
 	panic("THIS IS A PANIC")
 

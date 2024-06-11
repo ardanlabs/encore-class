@@ -20,28 +20,28 @@ admin:
 # CURL
 
 token:
-	curl -il -X GET http://127.0.0.1:4000/token/MyKID
+	curl -il -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:4000/token/MyKID
 
 tst:
-	curl -il -X POST http://127.0.0.1:4000/test -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:4000/test -d '{"status": "BILL"}'
 
 tst-err:
-	curl -il -X POST http://127.0.0.1:4000/testerror -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:4000/testerror -d '{"status": "BILL"}'
 
 tst-pan:
-	curl -il -X POST http://127.0.0.1:4000/testpanic -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:4000/testpanic -d '{"status": "BILL"}'
 
 token-stg:
-	curl -il -X GET https://staging-class0624-8652.encr.app/token/MyKID
+	curl -il -X GET -H "Authorization: Bearer ${TOKEN}" https://staging-class0624-8652.encr.app/token/MyKID
 
 tst-stg:
-	curl -il -X POST https://staging-class0624-8652.encr.app/test -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" https://staging-class0624-8652.encr.app/test -d '{"status": "BILL"}'
 
 tst-err-stg:
-	curl -il -X POST https://staging-class0624-8652.encr.app/testerror -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" https://staging-class0624-8652.encr.app/testerror -d '{"status": "BILL"}'
 
 tst-pan-stg:
-	curl -il -X POST https://staging-class0624-8652.encr.app/testpanic -d '{"status": "BILL"}'
+	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" https://staging-class0624-8652.encr.app/testpanic -d '{"status": "BILL"}'
 
 # ==============================================================================
 # Help Stuff
