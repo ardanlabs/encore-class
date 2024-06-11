@@ -92,6 +92,12 @@ statsviz:
 statsviz-stg:
 	open -a "Google Chrome" https://staging-class0624-8652.encr.app/debug/statsviz/
 
+secrets:
+	cat zarf/keys/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1.pem | encore secret set --type local KeyPEM
+	cat zarf/keys/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1.pem | encore secret set --type dev KeyPEM
+	echo "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1" | encore secret set --type local KeyID
+	echo "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1" | encore secret set --type dev KeyID
+
 # ==============================================================================
 # Modules support
 

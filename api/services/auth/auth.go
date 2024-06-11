@@ -14,6 +14,14 @@ import (
 	"github.com/ardanlabs/encore/foundation/logger"
 )
 
+// Represents the secrets for this service.
+var secrets struct {
+	KeyID  string
+	KeyPEM string
+}
+
+// =============================================================================
+
 // Service represents the encore service application.
 //
 //encore:service
