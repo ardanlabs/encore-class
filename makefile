@@ -56,11 +56,23 @@ help:
 up:
 	encore run -v --browser never
 
+FIND_DB = $(shell docker ps | grep encoredotdev | cut -c 1-12)
+SET_DB = $(eval DB_ID=$(FIND_DB))
+
 FIND_DAEMON = $(shell ps | grep 'encore daemon' | grep -v 'grep' | cut -c 1-5)
 SET_DAEMON = $(eval DAEMON_ID=$(FIND_DAEMON))
 
 FIND_APP = $(shell ps | grep 'encore_app_out' | grep -v 'grep' | cut -c 1-5)
 SET_APP = $(eval APP_ID=$(FIND_APP))
+
+down-db:
+	$(SET_DB)
+	if [ -z "$(DB_ID)" ]; then \
+		echo "db not running"; \
+    else \
+		docker stop $(DB_ID); \
+		docker rm $(DB_ID) -v; \
+    fi
 
 down-daemon:
 	$(SET_DAEMON)
@@ -78,7 +90,7 @@ down-app:
 		kill -SIGTERM $(APP_ID); \
     fi
 
-down: down-app down-daemon
+down: down-app down-daemon down-db
 
 pprof:
 	open -a "Google Chrome" http://127.0.0.1:4000/debug/pprof
@@ -97,6 +109,20 @@ secrets:
 	cat zarf/keys/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1.pem | encore secret set --type dev KeyPEM
 	echo "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1" | encore secret set --type local KeyID
 	echo "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1" | encore secret set --type dev KeyID
+
+resetdb:
+	encore db reset app
+	encore db reset test-app
+
+reset-encore:
+	cd "/Users/bill/Library/Application Support/encore"; \
+	rm encore.db; \
+	rm encore.db-shm; \
+	rm encore.db-wal; \
+	rm onboarding.json;
+
+db-conn:
+	encore db conn-uri app
 
 # ==============================================================================
 # Modules support
