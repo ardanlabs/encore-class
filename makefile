@@ -149,3 +149,25 @@ deps-cleancache:
 
 list:
 	go list -mod=mod all
+
+# ==============================================================================
+# Running tests within the local computer
+
+test-r:
+	CGO_ENABLED=1 encore test -race -count=1 ./...
+
+test-only:
+	CGO_ENABLED=0 encore test -count=1 ./...
+
+lint:
+	CGO_ENABLED=0 go vet ./...
+	staticcheck -checks=all ./...
+
+vuln-check:
+	govulncheck ./...
+
+test: test-only vuln-check lint
+
+test-down: test-only vuln-check lint down
+
+test-race: test-r vuln-check lint
