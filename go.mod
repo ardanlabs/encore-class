@@ -12,6 +12,8 @@ require (
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.2.0
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/open-policy-agent/opa v0.65.0
 	golang.org/x/crypto v0.23.0
 )
@@ -30,7 +32,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgx/v5 v5.2.0 // indirect
 	github.com/jackc/puddle/v2 v2.1.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
