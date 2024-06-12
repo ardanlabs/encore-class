@@ -124,6 +124,9 @@ reset-encore:
 db-conn:
 	encore db conn-uri app
 
+pgcli:
+	pgcli $(shell encore db conn-uri app)
+
 # ==============================================================================
 # Modules support
 
