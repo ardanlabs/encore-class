@@ -7,6 +7,8 @@ import (
 	"encore.dev"
 	"encore.dev/beta/errs"
 	"github.com/ardanlabs/encore/app/domain/testapp"
+	"github.com/ardanlabs/encore/app/domain/userapp"
+	"github.com/ardanlabs/encore/app/sdk/query"
 )
 
 // Fallback is called for the debug enpoints.
@@ -44,10 +46,40 @@ func (s *Service) TestError(ctx context.Context, status testapp.Status) (testapp
 	return testapp.Status{}, err
 }
 
-//lint:ignore U1000 "called by encore"
-//encore:api auth method=POST path=/testpanic tag:metrics tag:authorize tag:as_user_role
-func (s *Service) TestPanic(ctx context.Context, status testapp.Status) (testapp.Status, error) {
-	panic("THIS IS A PANIC")
+// =============================================================================
 
-	return testapp.Status{}, nil
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=POST path=/v1/users tag:metrics tag:authorize tag:as_admin_role
+func (s *Service) UserCreate(ctx context.Context, app userapp.NewUser) (userapp.User, error) {
+	return s.userApp.Create(ctx, app)
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=PUT path=/v1/users/:userID tag:metrics tag:authorize_user
+func (s *Service) UserUpdate(ctx context.Context, userID string, app userapp.UpdateUser) (userapp.User, error) {
+	return s.userApp.Update(ctx, app)
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=PUT path=/v1/role/:userID tag:metrics tag:authorize_user tag:as_admin_role
+func (s *Service) UserUpdateRole(ctx context.Context, userID string, app userapp.UpdateUserRole) (userapp.User, error) {
+	return s.userApp.UpdateRole(ctx, app)
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=DELETE path=/v1/users/:userID tag:metrics tag:authorize_user
+func (s *Service) UserDelete(ctx context.Context, userID string) error {
+	return s.userApp.Delete(ctx)
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=GET path=/v1/users tag:metrics tag:authorize tag:as_admin_role
+func (s *Service) UserQuery(ctx context.Context, qp userapp.QueryParams) (query.Result[userapp.User], error) {
+	return s.userApp.Query(ctx, qp)
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=GET path=/v1/users/:userID tag:metrics tag:authorize_user
+func (s *Service) UserQueryByID(ctx context.Context, userID string) (userapp.User, error) {
+	return s.userApp.QueryByID(ctx)
 }

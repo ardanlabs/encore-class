@@ -46,6 +46,25 @@ func (s *Service) authorize(req middleware.Request, next middleware.Next) middle
 	return next(req)
 }
 
+//lint:ignore U1000 "called by encore"
+//encore:middleware target=tag:authorize_user
+func (s *Service) authorizeUser(req middleware.Request, next middleware.Next) middleware.Response {
+	p, req, err := mid.AuthorizeUser(s.userBus, req)
+	if err != nil {
+		return errs.NewResponse(errs.Unauthenticated, err)
+	}
+
+	ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
+	defer cancel()
+
+	if err := authsrv.Authorize(ctx, p); err != nil {
+		err = fmt.Errorf("%s", err.Error()[17:]) // Remove "unauthenticated:" from the error string.
+		return errs.NewResponse(errs.Unauthenticated, err)
+	}
+
+	return next(req)
+}
+
 // =============================================================================
 // Specific middleware functions
 

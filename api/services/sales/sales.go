@@ -9,11 +9,22 @@ import (
 	"runtime"
 
 	"encore.dev"
+	esqldb "encore.dev/storage/sqldb"
 	"github.com/ardanlabs/conf/v3"
+	userapp "github.com/ardanlabs/encore/app/domain/userapp"
 	"github.com/ardanlabs/encore/app/sdk/debug"
 	"github.com/ardanlabs/encore/app/sdk/metrics"
+	"github.com/ardanlabs/encore/business/domain/userbus"
+	"github.com/ardanlabs/encore/business/domain/userbus/stores/userdb"
+	"github.com/ardanlabs/encore/business/sdk/appdb/migrate"
+	"github.com/ardanlabs/encore/business/sdk/sqldb"
 	"github.com/ardanlabs/encore/foundation/logger"
+	"github.com/jmoiron/sqlx"
 )
+
+// Represents the database this service will use. The name has to be a literal
+// string.
+var appDB = esqldb.Named("app")
 
 // Service represents the encore service application.
 //
@@ -22,14 +33,25 @@ type Service struct {
 	log   *logger.Logger
 	debug http.Handler
 	mtrcs *metrics.Values
+	db    *sqlx.DB
+	appDomain
+	busDomain
 }
 
 // NewService is called to create a new encore Service.
-func NewService(log *logger.Logger) (*Service, error) {
+func NewService(log *logger.Logger, db *sqlx.DB) (*Service, error) {
+	userBus := userbus.NewBusiness(log, userdb.NewStore(log, db))
+
 	s := Service{
 		log:   log,
 		debug: debug.Mux(),
 		mtrcs: newMetrics(),
+		appDomain: appDomain{
+			userApp: userapp.NewApp(userBus),
+		},
+		busDomain: busDomain{
+			userBus: userBus,
+		},
 	}
 
 	return &s, nil
@@ -52,14 +74,15 @@ func (s *Service) Shutdown(force context.Context) {
 func initService() (*Service, error) {
 	log := logger.New("sales")
 
-	if err := startup(log); err != nil {
+	db, err := startup(log)
+	if err != nil {
 		return nil, err
 	}
 
-	return NewService(log)
+	return NewService(log, db)
 }
 
-func startup(log *logger.Logger) error {
+func startup(log *logger.Logger) (*sqlx.DB, error) {
 	ctx := context.Background()
 
 	// -------------------------------------------------------------------------
@@ -72,6 +95,10 @@ func startup(log *logger.Logger) error {
 
 	cfg := struct {
 		conf.Version
+		DB struct {
+			MaxIdleConns int `conf:"default:0"`
+			MaxOpenConns int `conf:"default:0"`
+		}
 	}{
 		Version: conf.Version{
 			Build: encore.Meta().Environment.Name,
@@ -84,9 +111,9 @@ func startup(log *logger.Logger) error {
 	if err != nil {
 		if errors.Is(err, conf.ErrHelpWanted) {
 			fmt.Println(help)
-			return err
+			return nil, err
 		}
-		return fmt.Errorf("parsing config: %w", err)
+		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
 	// -------------------------------------------------------------------------
@@ -96,9 +123,27 @@ func startup(log *logger.Logger) error {
 
 	out, err := conf.String(&cfg)
 	if err != nil {
-		return fmt.Errorf("generating config for output: %w", err)
+		return nil, fmt.Errorf("generating config for output: %w", err)
 	}
 	log.Info(ctx, "initService", "config", out)
 
-	return nil
+	// -------------------------------------------------------------------------
+	// Database Support
+
+	log.Info(ctx, "initService", "status", "initializing database support")
+
+	db, err := sqldb.Open(sqldb.Config{
+		EDB:          appDB,
+		MaxIdleConns: cfg.DB.MaxIdleConns,
+		MaxOpenConns: cfg.DB.MaxOpenConns,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("connecting to db: %w", err)
+	}
+
+	if err := migrate.Seed(context.Background(), db); err != nil {
+		return nil, fmt.Errorf("seeding the db: %w", err)
+	}
+
+	return db, nil
 }
