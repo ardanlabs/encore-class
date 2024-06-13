@@ -57,6 +57,10 @@ users:
 	curl -il \
 	-H "Authorization: Bearer ${TOKEN}" "http://localhost:4000/v1/users?page=1&rows=2"
 
+users-stg:
+	curl -il \
+	-H "Authorization: Bearer ${TOKEN}" "http://staging-class0624-8652.encr.app/v1/users?page=1&rows=2"
+
 # ==============================================================================
 # Help Stuff
 # Q: How to pass values.
