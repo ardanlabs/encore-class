@@ -63,7 +63,9 @@ func (s *Service) Shutdown(force context.Context) {
 	ctx := context.Background()
 
 	defer s.log.Info(ctx, "shutdown", "status", "shutdown complete")
+
 	s.log.Info(ctx, "shutdown", "status", "stopping database support")
+	s.db.Close()
 }
 
 // =============================================================================

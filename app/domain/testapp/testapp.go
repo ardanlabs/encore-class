@@ -1,3 +1,4 @@
+// Package testapp was an example.
 package testapp
 
 import "context"
