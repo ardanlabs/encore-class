@@ -25,9 +25,34 @@ func (s *Service) AuthHandler(ctx context.Context, ap *authParams) (eauth.UID, *
 	switch parts[0] {
 	case "Bearer":
 		return mid.Bearer(ctx, s.auth, ap.Authorization)
+
+	case "Basic":
+		return mid.Basic(ctx, s.auth, s.userBus, ap.Authorization)
 	}
 
 	return "", nil, errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action")
+}
+
+// =============================================================================
+// Auth related APIs
+
+type token struct {
+	Token string `json:"token"`
+}
+
+//lint:ignore U1000 "called by encore"
+//encore:api auth method=GET path=/token/:kid
+func (s *Service) UserToken(ctx context.Context, kid string) (token, error) {
+
+	// The BearerBasic middleware function generates the claims.
+	claims := eauth.Data().(*auth.Claims)
+
+	tkn, err := s.auth.GenerateToken(kid, *claims)
+	if err != nil {
+		return token{}, errs.New(errs.Internal, err)
+	}
+
+	return token{tkn}, nil
 }
 
 //lint:ignore U1000 "called by encore"

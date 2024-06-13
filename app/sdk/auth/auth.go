@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ardanlabs/encore/business/domain/userbus"
 	"github.com/ardanlabs/encore/foundation/logger"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -21,7 +22,7 @@ var ErrForbidden = errors.New("attempted action is not allowed")
 // Claims represents the authorization claims transmitted via a JWT.
 type Claims struct {
 	jwt.RegisteredClaims
-	Roles []string `json:"roles"`
+	Roles []userbus.Role `json:"roles"`
 }
 
 // KeyLookup declares a method set of behavior for looking up

@@ -43,6 +43,20 @@ tst-err-stg:
 tst-pan-stg:
 	curl -il -X POST -H "Authorization: Bearer ${TOKEN}" https://staging-class0624-8652.encr.app/testpanic -d '{"status": "BILL"}'
 
+token:
+	curl -il \
+	--user "admin@example.com:gophers" http://localhost:4000/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
+
+token-stg:
+	curl -il \
+	--user "admin@example.com:gophers" http://staging-class0624-8652.encr.app/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
+
+# export TOKEN="COPY TOKEN STRING FROM LAST CALL"
+
+users:
+	curl -il \
+	-H "Authorization: Bearer ${TOKEN}" "http://localhost:4000/v1/users?page=1&rows=2"
+
 # ==============================================================================
 # Help Stuff
 # Q: How to pass values.
